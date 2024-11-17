@@ -1,13 +1,13 @@
-module reciever(
+module receiver(
 input clk,
 input rx,
 input rst,
-output [7:0] do,
-output busy,
-output done
+output reg [7:0] do,
+output reg busy,
+output reg done
 );
 reg [3:0] cnt;
-reg [1:0] idle=0 , rec =1 , fin =1;
+reg [1:0] idle=0 , rec =1 , fin =2;
 reg [7:0] stored;
 reg [1:0] st, ns;
 
@@ -28,10 +28,11 @@ cnt<=cnt+1;
 stored<={rx,stored[7:1]};
 end
 end
+end
 
 
 always@(*) begin 
-case (st)  begin 
+case (st)   
 idle: begin
 busy=0;
 done=0;
@@ -61,5 +62,5 @@ end
 
 
 
-end
+
 endmodule
