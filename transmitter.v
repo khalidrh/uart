@@ -1,56 +1,56 @@
 module trasnm (
-    input clk,
-    input rst,
-    input [7:0] din,
-    input first,
-    output reg tx,
-    output reg done
+    input clk,            // Clock input
+    input rst,            // Reset input
+    input [7:0] din,      // Data to transmit
+    input first,          // Start transmission signal
+    output reg tx,        // UART serial output
+    output reg done       // Transmission done signal
 );
-    parameter idl=0, start=1, send=2, fin=3;
-    reg [1:0] st, nx;
-    reg [3:0] cnt;
-    reg [7:0] hold;
+    parameter idl = 0,    // Idle state
+              start = 1,  // Start bit state
+              send = 2,   // Sending data bits state
+              fin = 3;    // Stop bit state
 
-    // Sequential Logic
+    reg [1:0] st, nx;     // Current and next states
+    reg [3:0] cnt;        // Counter to track bit transmission
+    reg [7:0] hold;       // Register to store data to be transmitted
+
+    // Sequential block: State transitions and outputs
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             st <= idl;
-            tx <= 1;       // UART idle state is HIGH
-            done <= 1;     // Ready for new transmission
-            cnt <= 0;
+            tx <= 1'b1;   // UART idle line is high
+            done <= 1'b1; // Ready for new data
+            cnt <= 4'b0000; // Reset bit counter
         end else begin
-            st <= nx;      // Update state
+            st <= nx;     // Update state
             if (st == send && cnt < 8) begin
-                tx <= hold[cnt];  // Send current bit
-                cnt <= cnt + 1;  // Increment bit counter
+                tx <= hold[cnt]; // Transmit current bit
+                cnt <= cnt + 1; // Increment bit counter
             end
+            if (st == start) tx <= 1'b0;  // Start bit
+            if (st == fin) tx <= 1'b1;    // Stop bit
         end
     end
 
-    // Combinational Logic
+    // Combinational block: Determine next state and control done signal
     always @(*) begin
-        // Default values
-        nx = st;
+        nx = st;          // Default to current state
+        done = 1'b0;      // Default done is low
         case (st)
             idl: begin
                 if (first && done) begin
-                    nx = start;
-                    done = 0;    // Clear done signal
-                    hold = din;  // Capture data
-                    cnt = 0;     // Reset counter
+                    nx = start;      // Move to start state
+                    done = 1'b0;     // Clear done signal
+                    hold = din;      // Load data
+                    cnt = 4'b0000;    // Reset counter
                 end
             end
-            start: begin
-                tx = 0;       // Start bit (LOW)
-                nx = send;    // Move to send state
-            end
-            send: begin
-                if (cnt == 8) nx = fin; // All bits sent, move to fin
-            end
+            start: nx = send;        // Move to send state
+            send: if (cnt == 8) nx = fin; // All bits sent, move to finish
             fin: begin
-                tx = 1;       // Stop bit (HIGH)
-                nx = idl;     // Return to idle
-                done = 1;     // Transmission complete
+                nx = idl;            // Return to idle
+                done = 1'b1;         // Set done signal
             end
         endcase
     end
