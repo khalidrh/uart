@@ -1,3 +1,4 @@
+
 module receiver(
     input clk,              // Clock input
     input rx,               // UART serial input
@@ -6,6 +7,13 @@ module receiver(
     output reg busy,        // Receiver busy signal
     output reg done         // Data reception complete signal
 );
+
+wire clkslow;
+freq_div slow(
+        .clk(clk),    // Input clock (100 MHz)
+        .rst(rst),    // Reset signal
+        .clkdiv(clkslow) // Output clock (9.6 kHz)
+    );
 
     // State definitions
     parameter idle = 2'b00,  // Idle state
@@ -18,7 +26,7 @@ module receiver(
     reg [7:0] stored;        // Register to store received data
 
     // Sequential block: State machine and counters
-    always @(posedge clk or posedge rst) begin
+        always @(posedge clkslow or posedge rst) begin
         if (rst) begin
             st <= idle;
             busy <= 0;
@@ -68,4 +76,3 @@ module receiver(
     end
 
 endmodule
-
