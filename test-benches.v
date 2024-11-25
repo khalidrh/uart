@@ -128,4 +128,84 @@ module tb_trasnm;
 
 endmodule
 ---------------------------------------------------------------------
+receiver test bench:
+
+`timescale 1ns/1ps
+
+module receiver_tb;
+
+    // Testbench Signals
+    reg clk;              // Clock signal
+    reg rst;              // Reset signal
+    reg rx;               // UART serial input
+    wire [7:0] do;        // Parallel data output
+    wire busy;            // Receiver busy signal
+    wire done;            // Data reception complete signal
+
+    // Instantiate the receiver module
+    receiver uut (
+        .clk(clk),
+        .rx(rx),
+        .rst(rst),
+        .do(do),
+        .busy(busy),
+        .done(done)
+    );
+
+    // Clock Generation (100 MHz)
+    always #5 clk = ~clk; // 10 ns period = 100 MHz clock
+
+    // UART Bit Timing (9600 bps)
+    localparam BAUD_PERIOD = 104167; // 9600 baud = 104,167 ns per bit
+
+    // Test Sequence
+    initial begin
+        // Initialize signals
+        clk = 0;
+        rst = 1;
+        rx = 1;  // UART idle line is high
+
+        // Apply Reset
+        #20;
+        rst = 0;
+
+        // Transmit UART Frame (0xA5)
+        send_frame(8'b10100101);  // Data = 0xA5
+
+        // Wait for the receiver to process the frame
+        #(BAUD_PERIOD * 12);
+
+        // Check the received data
+        if (do == 8'b10100101 && done) begin
+            $display("Test Passed: Received data = %h", do);
+        end else begin
+            $display("Test Failed: Expected 0xA5, Received %h", do);
+        end
+
+        // End simulation
+        $stop;
+    end
+
+    // Task to Transmit a UART Frame
+    task send_frame(input [7:0] data);
+        integer i;
+        begin
+            // Start Bit
+            rx = 0;
+            #(BAUD_PERIOD);
+
+            // Data Bits (LSB first)
+            for (i = 0; i < 8; i = i + 1) begin
+                rx = data[i];
+                #(BAUD_PERIOD);
+            end
+
+            // Stop Bit
+            rx = 1;
+            #(BAUD_PERIOD);
+        end
+    endtask
+
+endmodule
+
 
