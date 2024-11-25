@@ -40,4 +40,5 @@ Baud Rate Calculation
 The baud rate is derived from the system clock. For example, with a clock frequency of 100 MHz and a baud rate of 9600 bps, the clock divisor is calculated as:
 
 Divisor = System Clock Frequency / (Baud Rate * Oversampling Factor)
+
 The oversampling factor ensures proper synchronization and error-free data reception.
