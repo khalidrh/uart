@@ -42,3 +42,54 @@ The baud rate is derived from the system clock. For example, with a clock freque
 Divisor = System Clock Frequency / (Baud Rate * Oversampling Factor)
 
 The oversampling factor ensures proper synchronization and error-free data reception.
+
+---------------------------------------------------------------------------------------
+Freq Divider
+
+The code implements a frequency divider in Verilog. It takes an input clock of 100 MHz and generates an output clock of 9.6 kHz. Here's what the code does step-by-step:
+
+Inputs:
+
+clk: The input clock, which runs at 100 MHz.
+rst: An asynchronous reset signal to reset the counter and output clock.
+Output:
+
+clkdiv: The output clock signal that will have a frequency of 9.6 kHz.
+Parameter:
+
+div = 10417: This parameter defines the division factor. It’s calculated as:
+100
+ 
+MHz
+9.6
+ 
+kHz
+=
+10417
+9.6kHz
+100MHz
+​
+ =10417
+This value is used to divide the input clock by 10417 to generate the output frequency of 9.6 kHz.
+Counter (cnt):
+
+A 14-bit counter (cnt) counts from 0 to div/2 - 1. The reason for dividing by 2 is to toggle the output clock at the halfway point, ensuring a 50% duty cycle for the output clock.
+Operation:
+
+Reset (rst): When the rst signal is high, the counter is reset to 0, and the output clock (clkdiv) is set to 0.
+Counting: On every rising edge of the input clock (clk), the counter (cnt) is incremented.
+Output Toggle: When the counter reaches div/2 - 1 (i.e., after counting 5208 cycles), the output clock (clkdiv) is toggled (flipped between 0 and 1), and the counter is reset to 0.
+This toggling creates a square wave at the output with a frequency of 9.6 kHz.
+Final Output:
+
+The output clock (clkdiv) will toggle every 5208 input clock cycles, resulting in a frequency of 9.6 kHz.
+Key Points:
+The input clock frequency is 100 MHz.
+The output clock frequency is 9.6 kHz.
+The counter counts up to 5208 and toggles the output clock every time it reaches that count, generating a square wave with a 50% duty cycle.
+
+
+
+
+
+
