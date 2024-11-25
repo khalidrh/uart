@@ -6,6 +6,12 @@ module trasnm (
     output reg tx,        // UART serial output
     output reg done       // Transmission done signal
 );
+wire clkslow;
+freq_div slow(
+        .clk(clk),    // Input clock (100 MHz)
+        .rst(rst),    // Reset signal
+        .clkdiv(clkslow) // Output clock (9.6 kHz)
+    );
     parameter idl = 0,    // Idle state
               start = 1,  // Start bit state
               send = 2,   // Sending data bits state
@@ -16,7 +22,7 @@ module trasnm (
     reg [7:0] hold;       // Register to store data to be transmitted
 
     // Sequential block: State transitions and outputs
-    always @(posedge clk or posedge rst) begin
+    always @(posedge clkslow or posedge rst) begin
         if (rst) begin
             st <= idl;
             tx <= 1'b1;   // UART idle line is high
